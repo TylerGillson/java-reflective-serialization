@@ -13,6 +13,9 @@ import serializationObjects.SimpleObject;
 import java.util.Scanner;
 
 public class ObjectCreator {
+	private static Serializer serializer;
+	private static Transmitter transmitter;
+	
 	private static Scanner sc;
 	private static boolean creatingObjects = true;
 	private static final HashMap<Integer, Object> objHashMap = new HashMap<Integer, Object>();
@@ -23,28 +26,57 @@ public class ObjectCreator {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		serializer = new Serializer();
+		transmitter = new Transmitter();
+		
 		sc = new Scanner(System.in);
 		printMenu(false);
 		
 		while (creatingObjects) {
 			// Get menu selection from user:
-			String prompt = "Enter a number from 1-7 (enter 6 to see the menu again): ";
-			String errorMsg = "Please enter a number from 1-7 (enter 6 to see the menu again): ";
-			int selection = getIntSelection(prompt, errorMsg, 1, 8);
+			String prompt = "Enter a number from 1-8 (enter 7 to see the menu again): ";
+			String errorMsg = "Please enter a number from 1-8 (enter 7 to see the menu again): ";
+			int selection = getIntSelection(prompt, errorMsg, 1, 9);
 			
-			// Re-print menu, exit, or create an object:
-			if (selection == 6) {
+			// Create an object, serialize & transmit an object, re-print the menu, or exit:
+			if (selection == 6)
+				serializeThenTransmitObject();
+			else if (selection == 7)
 				printMenu(true);
-			}
-			else if (selection == 7) {
+			else if (selection == 8) {
 				System.out.println("Object creation complete. Exiting ...");
 				creatingObjects = false;	
 			}
-			else {
+			else
 				createObject(selection, true);
-			}
 		}
 		sc.close();
+	}
+	
+	/**
+	 * Serialize an arbitrary object, then transmit it over a network
+	 * socket for deserialization on a remote machine.
+	 * @param obj - An object instance
+	 */
+	public static void serializeThenTransmitObject() {
+		if (id == 0)
+			System.out.println("\nNo objects have been created yet.\n");
+		else {
+			System.out.println();
+			printExistingObjects();
+			
+			String prompt = "\nEnter the id number of the object you wish to serialize & transmit: ";
+			String errorMsg;
+			if (id > 1)
+				errorMsg = "Please enter a number from 0-" + String.valueOf(id - 1);
+			else
+				errorMsg = "You must enter 0, as only one object exists.";	
+			
+			int selection = getIntSelection(prompt, errorMsg, 0, id);
+			System.out.println();
+			org.jdom2.Document doc = serializer.serialize(objHashMap.get(selection));
+			transmitter.transmit(doc);
+		}
 	}
 	
 	/**********************************
@@ -59,7 +91,7 @@ public class ObjectCreator {
 	public static SimpleObject createSimpleObject(boolean endLine) {
 		System.out.println("\nCreating new simple object...");
 		
-		int i = getIntInput();
+		int i = getIntInput(false, 0);
 		
 		System.out.print("Enter a boolean: ");
 		while (!sc.hasNextBoolean()) {
@@ -102,10 +134,8 @@ public class ObjectCreator {
 				if (id == 0)
 					System.out.println("No objects have been created yet.\n");
 				else {
-					System.out.println("Existing objects:");
-					for (Entry<Integer, Object> e : objHashMap.entrySet()) {
-						System.out.println("\t" + e.getValue().toString());
-					}
+					printExistingObjects();
+					
 					prompt = "\nEnter the id number of the object you wish to reference: ";
 					if (id > 1)
 						errorMsg = "Please enter a number from 0-" + String.valueOf(id - 1);
@@ -135,13 +165,13 @@ public class ObjectCreator {
 		System.out.println("\nCreating new primitive array object... how many elements should it have?");
 		
 		// Initialize the array:
-		int length = getIntInput();
+		int length = getIntInput(true, 1);
 		int[] ints = new int[length];
 		
 		// Initialize its elements:
 		System.out.println("Integer array initialized. Please provide values for its elements.");
 		for (int i=0; i<length; i++) {
-			ints[i] = getIntInput();
+			ints[i] = getIntInput(false, 0);
 		}
 		
 		PrimitiveArrayObject primitiveArrayObj = new PrimitiveArrayObject(id, ints);
@@ -161,7 +191,7 @@ public class ObjectCreator {
 		System.out.println("\nCreating new reference array object... how many elements should it have?");
 		
 		// Initialize the array:
-		int length = getIntInput();
+		int length = getIntInput(true, 1);
 		Object[] refs = new Object[length];
 		
 		// Initialize its elements:
@@ -189,7 +219,7 @@ public class ObjectCreator {
 		System.out.println("\nCreating new collection object... how many elements should it have?");
 		
 		// Initialize the array:
-		int length = getIntInput();
+		int length = getIntInput(true, 1);
 		ArrayList<Object> refList = new ArrayList<Object>();
 		
 		// Initialize its elements:
@@ -218,27 +248,40 @@ public class ObjectCreator {
 	 */
 	public static void printMenu(boolean preLine) {
 		if (preLine) System.out.println();
-		System.out.println("Please select a type of object to create by typing a number and pressing enter:\n");
-		System.out.println("\t1 = Simple object");
-		System.out.println("\t2 = Object containing object references");
-		System.out.println("\t3 = Object containing array of primitives");
-		System.out.println("\t4 = Object containing array of objects");
-		System.out.println("\t5 = Object containing collection of objects");
-		System.out.println("\t6 = Re-print the menu");
-		System.out.println("\t7 = Exit\n");
+		System.out.println("Please select an option by typing a number and pressing enter:\n");
+		System.out.println("\t1 = Create a simple object");
+		System.out.println("\t2 = Create an object containing an object reference");
+		System.out.println("\t3 = Create an object containing an array of primitives");
+		System.out.println("\t4 = Create an object containing an array of objects");
+		System.out.println("\t5 = Create an object containing a collection of objects");
+		System.out.println("\t6 = Serialize, then transmit an existing object");
+		System.out.println("\t7 = Re-print the menu");
+		System.out.println("\t8 = Exit\n");
 	}
 	
 	/**
 	 * Acquire an integer from the user via standard input.
+	 * @param useMin - Whether or not to enforce a minimum acceptable value
+	 * @param min - The minimum acceptable value
 	 * @return The integer entered by the user
 	 */
-	public static int getIntInput() {
-		System.out.print("Enter an integer: ");
-		while (!sc.hasNextInt()) {
-			sc.next();
-			System.out.print("Enter a valid integer: ");	
+	public static int getIntInput(boolean useMin, int min) {
+		int i;
+		while (true) {
+			String prompt = (useMin) ? "Enter an integer >= " + String.valueOf(min) + ": " : "Enter an integer: ";
+			String errorMsg = (useMin) ? "Enter a valid integer >= " + String.valueOf(min) + ": " : "Enter a valid integer: ";
+			System.out.print(prompt);
+			
+			while (!sc.hasNextInt()) {
+				sc.next();
+				System.out.print(errorMsg);	
+			}
+			i = sc.nextInt();
+			
+			if (!useMin || useMin && i >= min)
+				break;
 		}
-		return sc.nextInt();
+		return i;
 	}
 	
 	/**
@@ -274,6 +317,16 @@ public class ObjectCreator {
 			}
         }
 		return selection;
+	}
+	
+	/**
+	 * Print all the objects that have been created so far.
+	 */
+	public static void printExistingObjects() {
+		System.out.println("Existing objects:");
+		for (Entry<Integer, Object> e : objHashMap.entrySet()) {
+			System.out.println("\t" + e.getValue().toString());
+		}
 	}
 	
 	/**
