@@ -1,7 +1,7 @@
 package serializationObjects;
 
-public class ReferenceArrayObject {
-	private final int idNum;
+public class ReferenceArrayObject extends SerializableObject {
+	
 	private Object[] refArray;
 	
 	/**
@@ -9,7 +9,7 @@ public class ReferenceArrayObject {
 	 * @param refs
 	 */
 	public ReferenceArrayObject(int id, Object[] refs) {
-		idNum = id;
+		super(id);
 		refArray = refs;
 	}
 	
@@ -20,7 +20,7 @@ public class ReferenceArrayObject {
 			if (i != refArray.length - 1)
 				s += ", ";
 		}
-		return "ReferenceArrayObject" + String.valueOf(idNum) + "[" + s + "]";
+		return "ReferenceArrayObject" + String.valueOf(super.getId()) + "[" + s + "]";
 	}
 	
 	public Object[] getRefArray() {
