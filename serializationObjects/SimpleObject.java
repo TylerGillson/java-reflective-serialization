@@ -1,6 +1,6 @@
 package serializationObjects;
 
-public class SimpleObject extends SerializableObject {
+public class SimpleObject {
 	
 	private int intField;	   				
 	private boolean boolField;  				
@@ -10,14 +10,13 @@ public class SimpleObject extends SerializableObject {
 	 * @param i
 	 * @param b
 	 */
-	public SimpleObject(int id, int i, boolean b) {
-		super(id);
+	public SimpleObject(int i, boolean b) {
 		intField = i;
 		boolField = b;
 	}
 	
 	public String toString() {
-		return "SimpleObject" + String.valueOf(super.getId()) + "[intField: " + String.valueOf(intField) + ", boolField: " + String.valueOf(boolField) + "]"; 
+		return "SimpleObject[intField: " + String.valueOf(intField) + ", boolField: " + String.valueOf(boolField) + "]"; 
 	}
 
 	public int getIntField() {

@@ -10,7 +10,6 @@ import serializationObjects.CollectionObject;
 import serializationObjects.PrimitiveArrayObject;
 import serializationObjects.ReferenceArrayObject;
 import serializationObjects.ReferenceObject;
-import serializationObjects.SerializableObject;
 import serializationObjects.SimpleObject;
 
 import java.util.Scanner;
@@ -30,6 +29,7 @@ public class ObjectCreator {
 	private static boolean creatingObjects = true;
 	private static int id = 0;
 	private static Object currentObj;
+	private static int currentObjId;
 	
 	/**
 	 * Create an arbitrary number of objects. Objects may be selected from 5 predefined options.
@@ -83,8 +83,7 @@ public class ObjectCreator {
 			xmlOutputter.setFormat(Format.getPrettyFormat());
 			
 			String className = currentObj.getClass().getSimpleName();
-			String id = String.valueOf(((SerializableObject)currentObj).getId());
-			String filepath = "/Users/tylergillson/Desktop/XML/" + className + id + ".xml";
+			String filepath = "/Users/tylergillson/Desktop/XML/" + className + currentObjId + ".xml";
 			
 			try {
 				xmlOutputter.output(doc, new FileWriter(filepath));
@@ -114,6 +113,7 @@ public class ObjectCreator {
 			System.out.println();
 			
 			currentObj = objHashMap.get(selection);
+			currentObjId = selection;
 			return serializer.serialize(currentObj);
 		}
 	}
@@ -139,7 +139,7 @@ public class ObjectCreator {
 		}
 		boolean b = sc.nextBoolean();
 		
-		SimpleObject simpleObj = new SimpleObject(id, i, b);
+		SimpleObject simpleObj = new SimpleObject(i, b);
 		objHashMap.put(id++, simpleObj);
 		
 		System.out.println("Simple object created.");
@@ -161,12 +161,12 @@ public class ObjectCreator {
 		ReferenceObject refObj = null;
 		switch (selection) {
 			case 1:
-				SerializableObject simpleObj = createSimpleObject(false);
-				refObj = new ReferenceObject(id, simpleObj);
+				SimpleObject simpleObj = createSimpleObject(false);
+				refObj = new ReferenceObject(simpleObj);
 				break;
 			case 2:
 				ReferenceObject recRefObj = createReferenceObject(false);
-				refObj = new ReferenceObject(id, recRefObj);
+				refObj = new ReferenceObject(recRefObj);
 				break;
 			case 3:
 				if (id == 0)
@@ -181,7 +181,7 @@ public class ObjectCreator {
 						errorMsg = "You must enter 0, as only one object exists.";
 						
 					selection = getIntSelection(prompt, errorMsg, 0, id);
-					refObj = new ReferenceObject(id, objHashMap.get(selection));
+					refObj = new ReferenceObject(objHashMap.get(selection));
 				}
 				break;
 		}
@@ -210,7 +210,7 @@ public class ObjectCreator {
 			ints[i] = getIntInput(false, 0);
 		}
 		
-		PrimitiveArrayObject primitiveArrayObj = new PrimitiveArrayObject(id, ints);
+		PrimitiveArrayObject primitiveArrayObj = new PrimitiveArrayObject(ints);
 		objHashMap.put(id++, primitiveArrayObj);
 		
 		System.out.println("Primitive array object created.");
@@ -238,7 +238,7 @@ public class ObjectCreator {
 			refs[i] = createObject(selection, false);
 		}
 		
-		ReferenceArrayObject referenceArrayObj = new ReferenceArrayObject(id, refs);
+		ReferenceArrayObject referenceArrayObj = new ReferenceArrayObject(refs);
 		objHashMap.put(id++, referenceArrayObj);
 		
 		System.out.println("Reference array object created.");
@@ -266,7 +266,7 @@ public class ObjectCreator {
 			refList.add(createObject(selection, false));
 		}
 		
-		CollectionObject collectionObj = new CollectionObject(id, refList);
+		CollectionObject collectionObj = new CollectionObject(refList);
 		objHashMap.put(id++, collectionObj);
 		
 		System.out.println("Collection object created.");
@@ -362,7 +362,7 @@ public class ObjectCreator {
 	public static void printExistingObjects() {
 		System.out.println("Existing objects:");
 		for (Entry<Integer, Object> e : objHashMap.entrySet())
-			System.out.println("\t" + e.getValue().toString());
+			System.out.println("\tID:" + String.valueOf(e.getKey()) + e.getValue().toString());
 	}
 	
 	/**

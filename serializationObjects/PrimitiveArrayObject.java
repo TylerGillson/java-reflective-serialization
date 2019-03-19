@@ -1,6 +1,6 @@
 package serializationObjects;
 
-public class PrimitiveArrayObject extends SerializableObject {
+public class PrimitiveArrayObject {
 	
 	private int[] intArray;
 	
@@ -8,8 +8,7 @@ public class PrimitiveArrayObject extends SerializableObject {
 	 * Primitive Array Object Constructor
 	 * @param ints
 	 */
-	public PrimitiveArrayObject(int id, int[] ints) {
-		super(id);
+	public PrimitiveArrayObject(int[] ints) {
 		intArray = ints;
 	}
 	
@@ -20,7 +19,7 @@ public class PrimitiveArrayObject extends SerializableObject {
 			if (i != intArray.length - 1)
 				s += ", ";
 		}
-		return "PrimitiveArrayObject" + String.valueOf(super.getId()) + "[" + s + "]";
+		return "PrimitiveArrayObject[" + s + "]";
 	}
 
 	public int[] getIntArray() {

@@ -1,35 +1,39 @@
 package serialization;
 
 import java.lang.reflect.*;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.IdentityHashMap;
 
 import org.jdom2.Attribute;
 import org.jdom2.Document;
 import org.jdom2.Element;
 
-import serializationObjects.SerializableObject;
-
 public class Serializer {
 	
-	private static IdentityHashMap<Integer, Element> serializationTable;
+	private static IdentityHashMap<Object, Integer> serializationMap;
+	private static IdentityHashMap<Integer, Element> xmlTable;
+	private static int id;
 	
 	public Serializer() {
-		serializationTable = new IdentityHashMap<Integer, Element>();
+		serializationMap = new IdentityHashMap<Object, Integer>();
+		xmlTable = new IdentityHashMap<Integer, Element>();
+		id = 0;
 	}
 	
 	public Document serialize(Object obj) {
-		int id = ((SerializableObject)obj).getId();
 		Element root = new Element("serialized");
 		Document doc = new Document(root);
-		toXML(root, obj, id);
+		toXML(root, obj);
 		return doc;	
 	}
 	
-	private void toXML(Element root, Object obj, int id) {
-		if (serializationTable.containsKey(id)) {
-			Element serializationTableEntry = serializationTable.get(id);
-			serializationTableEntry.detach();
-			root.addContent(serializationTableEntry);
+	private void toXML(Element root, Object obj) {
+		if (serializationMap.containsKey(obj)) {
+			int key = serializationMap.get(obj);
+			Element serialized = xmlTable.get(key);
+			serialized.detach();
+			root.addContent(serialized);
 			/*
 			 * NEED TO CHECK CHILDREN FOR <reference> ELEMENTS & PERFORM ADDITIONAL LOOKUPS!!!
 			 */
@@ -37,19 +41,20 @@ public class Serializer {
 		}
 		else {
 			Class <?> objClass = obj.getClass();
-			ObjectElement objElement = initObjectElement(obj, id, objClass); 
+			ObjectElement objElement = initObjectElement(obj, objClass); 
 			
 			if (objClass.isArray())
 				serializeArray(root, objElement.elem, objElement.length, obj, objClass);
 			else
 				serializeNonArray(root, objElement.elem, obj, objClass);
 			
-			serializationTable.put(id, objElement.elem);
+			serializationMap.put(obj, id++);
+			xmlTable.put(id, objElement.elem);
 			root.addContent(objElement.elem);
 		}
 	}
 	
-	private ObjectElement initObjectElement(Object obj, int id, Class<?> c) {
+	private ObjectElement initObjectElement(Object obj, Class<?> c) {
 		Element objElement = new Element("object");
 		objElement.setAttribute(new Attribute("class", c.getSimpleName()));
 		objElement.setAttribute(new Attribute("id", String.valueOf(id)));
@@ -91,10 +96,19 @@ public class Serializer {
 				
 				if (valClass.isArray()) {
 					Element entry = new Element("reference");
-					int entryId = val.hashCode();
-					entry.setText(String.valueOf(entryId));
+					entry.setText(String.valueOf(++id));
 					field.addContent(entry);
-					toXML(root, val, entryId);
+					toXML(root, val);
+				}
+				else if (valClass.isInstance(Collection.class)) {
+					@SuppressWarnings("unchecked")
+					ArrayList<Integer> l = (ArrayList<Integer>)val;
+					for (int i = 0; i < l.size(); i++) {
+						Element entry = new Element("reference");
+						entry.setText(String.valueOf(++id));
+						field.addContent(entry);
+						toXML(root, val);
+					}
 				}
 				else {
 					Element fieldChild = serializeFieldOrElement(root, val, valClass);
@@ -116,10 +130,9 @@ public class Serializer {
 			entry.setText(String.valueOf(o));
 		} 
 		else {
-			int childId = ((SerializableObject)o).getId();
 			entry.setName("reference");
-			entry.setText(String.valueOf(childId));
-			toXML(root, o, childId);
+			entry.setText(String.valueOf(++id));
+			toXML(root, o);
 		}
 		return entry;
 	}

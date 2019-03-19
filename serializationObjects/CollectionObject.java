@@ -2,7 +2,7 @@ package serializationObjects;
 
 import java.util.ArrayList;
 
-public class CollectionObject extends SerializableObject {
+public class CollectionObject {
 	
 	private ArrayList<Object> refArrayList;
 	
@@ -10,8 +10,7 @@ public class CollectionObject extends SerializableObject {
 	 * Collection Object Constructor
 	 * @param refList
 	 */
-	public CollectionObject(int id, ArrayList<Object> refList) {
-		super(id);
+	public CollectionObject(ArrayList<Object> refList) {
 		refArrayList = refList;
 	}
 	
@@ -22,7 +21,7 @@ public class CollectionObject extends SerializableObject {
 			if (i != refArrayList.size() - 1)
 				s += ", ";
 		}
-		return "CollectionObject" + String.valueOf(super.getId()) + "[" + s + "]";
+		return "CollectionObject[" + s + "]";
 	}
 	
 	public ArrayList<Object> getRefArrayList() {

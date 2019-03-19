@@ -1,6 +1,6 @@
 package serializationObjects;
 
-public class ReferenceObject extends SerializableObject {
+public class ReferenceObject {
 	
 	private Object objRef;
 	
@@ -8,13 +8,12 @@ public class ReferenceObject extends SerializableObject {
 	 * Reference Object Constructor
 	 * @param ref
 	 */
-	public ReferenceObject(int id, Object ref) {
-		super(id);
+	public ReferenceObject(Object ref) {
 		objRef = ref;
 	}
 	
 	public String toString() {
-		return "ReferenceObject" + String.valueOf(super.getId()) + "[objRef: " + objRef.toString() + "]";
+		return "ReferenceObject[objRef: " + objRef.toString() + "]";
 	}
 	
 	public Object getObjRef() {
