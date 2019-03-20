@@ -28,8 +28,8 @@ public class ObjectCreator {
 	
 	private static boolean creatingObjects = true;
 	private static int id = 0;
+	private static int fileCount = 0;
 	private static Object currentObj;
-	private static int currentObjId;
 	
 	/**
 	 * Create an arbitrary number of objects. Objects may be selected from 5 predefined options.
@@ -83,7 +83,7 @@ public class ObjectCreator {
 			xmlOutputter.setFormat(Format.getPrettyFormat());
 			
 			String className = currentObj.getClass().getSimpleName();
-			String filepath = "/Users/tylergillson/Desktop/XML/" + className + currentObjId + ".xml";
+			String filepath = "/Users/tylergillson/Desktop/XML/" + String.valueOf(fileCount++) + "_" + className + ".xml";
 			
 			try {
 				xmlOutputter.output(doc, new FileWriter(filepath));
@@ -113,7 +113,6 @@ public class ObjectCreator {
 			System.out.println();
 			
 			currentObj = objHashMap.get(selection);
-			currentObjId = selection;
 			return serializer.serialize(currentObj);
 		}
 	}
@@ -362,7 +361,7 @@ public class ObjectCreator {
 	public static void printExistingObjects() {
 		System.out.println("Existing objects:");
 		for (Entry<Integer, Object> e : objHashMap.entrySet())
-			System.out.println("\tID:" + String.valueOf(e.getKey()) + e.getValue().toString());
+			System.out.println("\tID #" + String.valueOf(e.getKey()) + ": " + e.getValue().toString());
 	}
 	
 	/**
