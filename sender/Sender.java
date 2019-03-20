@@ -1,7 +1,12 @@
-package serialization;
+package sender;
 
+import java.io.BufferedReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.Scanner;
 
 import org.jdom2.Document;
@@ -13,12 +18,18 @@ public class Sender {
 	private static Scanner sc;
 	private static ObjectCreator objCreator;
 	private static Serializer serializer;
-	private static Transmitter transmitter;
 	private static XMLOutputter xmlOutputter;
 	
-	private static boolean creatingObjects = true;
+	private static Socket socket;
+	private static BufferedReader inStream;
+	private static PrintWriter outStream;
+	
+	private static boolean working = true;
 	private static int fileCount = 0;
 	private static Object currentObj;
+	
+	private static final String remoteAddress = "127.0.0.1";
+	private static final int port = 80;
 	private static final String fileRoot = "/Users/tylergillson/Desktop/XML/";
 	
 	/**
@@ -30,11 +41,10 @@ public class Sender {
 		sc = new Scanner(System.in);
 		objCreator = new ObjectCreator(sc);
 		serializer = new Serializer();
-		transmitter = new Transmitter();
 		xmlOutputter = new XMLOutputter();
 		
 		objCreator.printMenu(false);
-		while (creatingObjects) {
+		while (working) {
 			// Get menu selection from user:
 			String prompt = "Enter a number from 1-9 (enter 8 to see the menu again): ";
 			String errorMsg = "Please enter a number from 1-9 (enter 8 to see the menu again): ";
@@ -49,14 +59,14 @@ public class Sender {
 				objCreator.printMenu(true);
 			else if (selection == 9) {
 				System.out.println("Exiting ...");
-				creatingObjects = false;	
+				working = false;	
 			}
 			else
 				objCreator.createObject(selection, true);
 		}
-		sc.close();
+		sc.close();	
 	}
-	
+		
 	/**
 	 * Serialize an arbitrary object, then transmit it over a network
 	 * socket for deserialization on a remote machine.
@@ -64,19 +74,30 @@ public class Sender {
 	 */
 	public static void serializeThenTransmitObject() {
 		Document doc = serializeObject("transmit");
-		if (doc != null)
-			transmitter.transmit(doc);
+		initConnection();
+		
+		if (doc != null) {
+			try {
+				xmlOutputter.setFormat(Format.getRawFormat());
+				xmlOutputter.output(doc, outStream);
+				closeConnection();
+				System.out.println("Transmitted!");
+			} catch (IOException e) {
+				System.out.println(e.getMessage());
+			}
+		}
 	}
 	
 	public static void serializeThenWriteObjectToFile() {
 		Document doc = serializeObject("write to a file");
+		
 		if (doc != null) {
-			xmlOutputter.setFormat(Format.getPrettyFormat());
-			
+		
 			String className = currentObj.getClass().getSimpleName();
 			String filepath = fileRoot + String.valueOf(fileCount++) + "_" + className + ".xml";
 			
 			try {
+				xmlOutputter.setFormat(Format.getPrettyFormat());
 				xmlOutputter.output(doc, new FileWriter(filepath));
 			} catch (IOException e) {
 				System.out.println(e.getMessage());
@@ -106,5 +127,30 @@ public class Sender {
 			currentObj = objCreator.getObj(selection);
 			return serializer.serialize(currentObj);
 		}
+	}
+	
+	public static void initConnection() {
+		try {
+			socket = new Socket(remoteAddress, port);
+			System.out.println("Connected to remote machine ...\n");
+			
+			inStream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			outStream = new PrintWriter(socket.getOutputStream(), true);
+			
+		} catch (UnknownHostException e) {
+			System.out.println(e.getMessage());
+		} catch (IOException e) {
+			System.out.println(e.getMessage());
+		}
+	}
+	
+	public static void closeConnection() {
+		try {
+			inStream.close();
+			outStream.close();
+			socket.close(); 
+		} catch(IOException e) {
+			System.out.println(e.getMessage());
+		} 
 	}
 }

@@ -1,4 +1,4 @@
-package serialization;
+package sender;
 
 import java.lang.reflect.*;
 import java.util.ArrayList;

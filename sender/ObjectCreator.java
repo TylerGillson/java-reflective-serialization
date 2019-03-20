@@ -1,4 +1,4 @@
-package serialization;
+package sender;
 
 import java.util.ArrayList;
 import java.util.HashMap;
