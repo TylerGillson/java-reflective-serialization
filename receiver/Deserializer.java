@@ -1,7 +1,9 @@
 package receiver;
 
 import java.lang.reflect.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 import org.jdom2.Document;
@@ -86,15 +88,27 @@ public class Deserializer {
 			for (Element field : objElement.getChildren()) {
 				String fieldName = field.getAttributeValue("name");
 				Field f = extractAndEnableField(classObj, fieldName);
+				ArrayList<Object> objArrayList = null;
 				
-				for (Element entry : field.getChildren()) {
+				Iterator<Element> iter = field.getChildren().iterator();
+				while (iter.hasNext()) {
+					Element entry = iter.next();
 					String text = entry.getText();
 					
 					if (entry.getName().equals("reference")) {
 						int childId = Integer.parseInt(text);
 						Object refObj = rebuildObject(objElementTable.get(childId));
 						try {
-							f.set(o, refObj);
+							if (f.getType().getSimpleName().equals("ArrayList")) {
+								if (objArrayList == null)
+									objArrayList = new ArrayList<Object>();
+								objArrayList.add(refObj);
+								
+								if (!iter.hasNext())
+									f.set(o, objArrayList);
+							}
+							else
+								f.set(o, refObj);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}

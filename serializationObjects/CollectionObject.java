@@ -6,7 +6,9 @@ public class CollectionObject {
 	
 	private ArrayList<Object> refArrayList;
 	
-	public CollectionObject() {}
+	public CollectionObject() {
+		refArrayList = new ArrayList<Object>();
+	}
 	
 	public CollectionObject(ArrayList<Object> refList) {
 		refArrayList = refList;
