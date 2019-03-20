@@ -22,7 +22,7 @@ public class Receiver {
 	private static Socket clientSocket;
 	private static BufferedReader inStream;
 	private static PrintWriter outStream;
-	private static final int port = 80;
+	private static final int port = 5000;
 	
 	private static boolean working = true;
 	

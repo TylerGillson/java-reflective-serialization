@@ -28,8 +28,8 @@ public class Sender {
 	private static int fileCount = 0;
 	private static Object currentObj;
 	
-	private static final String remoteAddress = "127.0.0.1";
-	private static final int port = 80;
+	private static final String remoteAddress = "136.159.5.27";  //"127.0.0.1"
+	private static final int port = 5000;
 	private static final String fileRoot = "/Users/tylergillson/Desktop/XML/";
 	
 	/**
