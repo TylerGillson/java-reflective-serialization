@@ -1,10 +1,9 @@
 package serialization;
 
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.Scanner;
 
 import serializationObjects.CollectionObject;
 import serializationObjects.PrimitiveArrayObject;
@@ -12,109 +11,24 @@ import serializationObjects.ReferenceArrayObject;
 import serializationObjects.ReferenceObject;
 import serializationObjects.SimpleObject;
 
-import java.util.Scanner;
-import org.jdom2.Document;
-import org.jdom2.output.Format;
-import org.jdom2.output.XMLOutputter;
-
 public class ObjectCreator {
 	
-	private static Serializer serializer;
-	private static Transmitter transmitter;
+	private Scanner sc;
+	private HashMap<Integer, Object> objHashMap;
+	private int objCounter;
 	
-	private static Scanner sc;
-	private static XMLOutputter xmlOutputter = new XMLOutputter();
-	private static final HashMap<Integer, Object> objHashMap = new HashMap<Integer, Object>();
-	
-	private static boolean creatingObjects = true;
-	private static int id = 0;
-	private static int fileCount = 0;
-	private static Object currentObj;
-	
-	/**
-	 * Create an arbitrary number of objects. Objects may be selected from 5 predefined options.
-	 * Optionally serialize, then transmit created objects over a network.
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		serializer = new Serializer();
-		transmitter = new Transmitter();
-		
-		sc = new Scanner(System.in);
-		printMenu(false);
-		
-		while (creatingObjects) {
-			// Get menu selection from user:
-			String prompt = "Enter a number from 1-9 (enter 8 to see the menu again): ";
-			String errorMsg = "Please enter a number from 1-9 (enter 8 to see the menu again): ";
-			int selection = getIntSelection(prompt, errorMsg, 1, 10);
-			
-			// Create an object, serialize & transmit an object, re-print the menu, or exit:
-			if (selection == 6)
-				serializeThenTransmitObject();
-			else if (selection == 7)
-				serializeThenWriteObjectToFile();
-			else if (selection == 8)
-				printMenu(true);
-			else if (selection == 9) {
-				System.out.println("Exiting ...");
-				creatingObjects = false;	
-			}
-			else
-				createObject(selection, true);
-		}
-		sc.close();
+	public ObjectCreator(Scanner s) {
+		sc = s;
+		objHashMap = new HashMap<Integer, Object>();
+		objCounter = 0;
 	}
 	
-	/**
-	 * Serialize an arbitrary object, then transmit it over a network
-	 * socket for deserialization on a remote machine.
-	 * @param obj - An object instance
-	 */
-	public static void serializeThenTransmitObject() {
-		Document doc = serializeObject("transmit");
-		if (doc != null)
-			transmitter.transmit(doc);
+	public int getObjCounter() {
+		return objCounter;
 	}
 	
-	public static void serializeThenWriteObjectToFile() {
-		Document doc = serializeObject("write to a file");
-		if (doc != null) {
-			xmlOutputter.setFormat(Format.getPrettyFormat());
-			
-			String className = currentObj.getClass().getSimpleName();
-			String filepath = "/Users/tylergillson/Desktop/XML/" + String.valueOf(fileCount++) + "_" + className + ".xml";
-			
-			try {
-				xmlOutputter.output(doc, new FileWriter(filepath));
-			} catch (IOException e) {
-				System.out.println(e.getMessage());
-			}	
-		}
-	}
-
-	public static Document serializeObject(String msg) {
-		if (id == 0) {
-			System.out.println("\nNo objects have been created yet.\n");
-			return null;
-		}
-		else {
-			System.out.println();
-			printExistingObjects();
-			
-			String prompt = "\nEnter the id number of the object you wish to serialize & " + msg + ": ";
-			String errorMsg;
-			if (id > 1)
-				errorMsg = "Please enter a number from 0-" + String.valueOf(id - 1);
-			else
-				errorMsg = "You must enter 0, as only one object exists.";	
-			
-			int selection = getIntSelection(prompt, errorMsg, 0, id);
-			System.out.println();
-			
-			currentObj = objHashMap.get(selection);
-			return serializer.serialize(currentObj);
-		}
+	public Object getObj(int id) {
+		return objHashMap.get(id);
 	}
 	
 	/**********************************
@@ -126,7 +40,7 @@ public class ObjectCreator {
 	 * @param endLine - Whether or not to print a line break after object creation
 	 * @return simpleObj - A newly created SimpleObject
 	 */
-	public static SimpleObject createSimpleObject(boolean endLine) {
+	public SimpleObject createSimpleObject(boolean endLine) {
 		System.out.println("\nCreating new simple object...");
 
 		int i = getIntInput(false, 0);
@@ -139,7 +53,7 @@ public class ObjectCreator {
 		boolean b = sc.nextBoolean();
 		
 		SimpleObject simpleObj = new SimpleObject(i, b);
-		objHashMap.put(id++, simpleObj);
+		objHashMap.put(objCounter++, simpleObj);
 		
 		System.out.println("Simple object created.");
 		if (endLine) System.out.println();
@@ -151,7 +65,7 @@ public class ObjectCreator {
 	 * @param endLine - Whether or not to print a line break after object creation
 	 * @return refObj - A newly created ReferenceObject
 	 */
-	public static ReferenceObject createReferenceObject(boolean endLine) {
+	public ReferenceObject createReferenceObject(boolean endLine) {
 		System.out.println("\nCreating new reference object... what type of object should be referenced?");
 		String prompt = "Enter: 1 for new Simple Object, 2 for new Reference Object, 3 for existing object: ";
 		String errorMsg = "Enter a number from 1-3";
@@ -165,28 +79,29 @@ public class ObjectCreator {
 				break;
 			case 2:
 				ReferenceObject recRefObj = createReferenceObject(false);
-				refObj = new ReferenceObject(recRefObj);
+				if (recRefObj != null)
+					refObj = new ReferenceObject(recRefObj);
 				break;
 			case 3:
-				if (id == 0)
+				if (objCounter == 0)
 					System.out.println("No objects have been created yet.\n");
 				else {
 					printExistingObjects();
 					
 					prompt = "\nEnter the id number of the object you wish to reference: ";
-					if (id > 1)
-						errorMsg = "Please enter a number from 0-" + String.valueOf(id - 1);
+					if (objCounter > 1)
+						errorMsg = "Please enter a number from 0-" + String.valueOf(objCounter - 1);
 					else
 						errorMsg = "You must enter 0, as only one object exists.";
 						
-					selection = getIntSelection(prompt, errorMsg, 0, id);
+					selection = getIntSelection(prompt, errorMsg, 0, objCounter);
 					refObj = new ReferenceObject(objHashMap.get(selection));
 				}
 				break;
 		}
 		
 		if (refObj != null) {
-			objHashMap.put(id++, refObj);
+			objHashMap.put(objCounter++, refObj);
 			System.out.println("Reference object created.");
 			if (endLine) System.out.println();	
 		}
@@ -198,7 +113,7 @@ public class ObjectCreator {
 	 * @param endLine - Whether or not to print a line break after object creation
 	 * @return primitiveArrayObj - A newly created PrimitiveArrayObject
 	 */
-	public static PrimitiveArrayObject createPrimitiveArrayObject(boolean endLine) {
+	public PrimitiveArrayObject createPrimitiveArrayObject(boolean endLine) {
 		System.out.println("\nCreating new primitive array... how many elements should it have?");
 		int length = getIntInput(true, 1);
 		int[] ints = new int[length];
@@ -210,7 +125,7 @@ public class ObjectCreator {
 		}
 		
 		PrimitiveArrayObject primitiveArrayObj = new PrimitiveArrayObject(ints);
-		objHashMap.put(id++, primitiveArrayObj);
+		objHashMap.put(objCounter++, primitiveArrayObj);
 		
 		System.out.println("Primitive array object created.");
 		if (endLine) System.out.println();
@@ -222,7 +137,7 @@ public class ObjectCreator {
 	 * @param endLine - Whether or not to print a line break after object creation
 	 * @return referenceArrayObj - A newly created ReferenceArrayObject
 	 */
-	public static ReferenceArrayObject createReferenceArrayObject(boolean endLine) {
+	public ReferenceArrayObject createReferenceArrayObject(boolean endLine) {
 		System.out.println("\nCreating new reference array object... how many elements should it have?");
 		
 		// Initialize the array:
@@ -238,7 +153,7 @@ public class ObjectCreator {
 		}
 		
 		ReferenceArrayObject referenceArrayObj = new ReferenceArrayObject(refs);
-		objHashMap.put(id++, referenceArrayObj);
+		objHashMap.put(objCounter++, referenceArrayObj);
 		
 		System.out.println("Reference array object created.");
 		if (endLine) System.out.println();
@@ -250,7 +165,7 @@ public class ObjectCreator {
 	 * @param endLine - Whether or not to print a line break after object creation
 	 * @return collectionObj - A newly created CollectionObject
 	 */
-	public static CollectionObject createObjectCollection(boolean endLine) {
+	public CollectionObject createObjectCollection(boolean endLine) {
 		System.out.println("\nCreating new collection object... how many elements should it have?");
 		
 		// Initialize the array:
@@ -266,7 +181,7 @@ public class ObjectCreator {
 		}
 		
 		CollectionObject collectionObj = new CollectionObject(refList);
-		objHashMap.put(id++, collectionObj);
+		objHashMap.put(objCounter++, collectionObj);
 		
 		System.out.println("Collection object created.");
 		if (endLine) System.out.println();
@@ -281,7 +196,7 @@ public class ObjectCreator {
 	 * Print a menu of object creation options for the user.
 	 * @param preLine - boolean indicating whether or not to print a line break before printing the menu
 	 */
-	public static void printMenu(boolean preLine) {
+	public void printMenu(boolean preLine) {
 		if (preLine) System.out.println();
 		System.out.println("Please select an option by typing a number and pressing enter:\n");
 		System.out.println("\t1 = Create a simple object");
@@ -301,7 +216,7 @@ public class ObjectCreator {
 	 * @param min - The minimum acceptable value
 	 * @return The integer entered by the user
 	 */
-	public static int getIntInput(boolean useMin, int min) {
+	public int getIntInput(boolean useMin, int min) {
 		int i;
 		while (true) {
 			String prompt = (useMin) ? "Enter an integer >= " + String.valueOf(min) + ": " : "Enter an integer: ";
@@ -328,7 +243,7 @@ public class ObjectCreator {
 	 * @param max - Integer indicating maximum acceptable input value (exclusive)
 	 * @return selection - An integer input from [min, max-1]
 	 */
-	public static int getIntSelection(String prompt, String errorMsg, int min, int max) {
+	public int getIntSelection(String prompt, String errorMsg, int min, int max) {
 		int selection;
 		while (true) {
 			System.out.print(prompt);
@@ -358,7 +273,7 @@ public class ObjectCreator {
 	/**
 	 * Print all the objects that have been created so far.
 	 */
-	public static void printExistingObjects() {
+	public void printExistingObjects() {
 		System.out.println("Existing objects:");
 		for (Entry<Integer, Object> e : objHashMap.entrySet())
 			System.out.println("\tID #" + String.valueOf(e.getKey()) + ": " + e.getValue().toString());
@@ -370,7 +285,7 @@ public class ObjectCreator {
 	 * @param endLines - Whether or not to print a line break after object creation
 	 * @return o - A newly created Object
 	 */
-	public static Object createObject(int selection, boolean endLine) {
+	public Object createObject(int selection, boolean endLine) {
 		Object o = null;	
 		switch (selection) {
 			case 1:
