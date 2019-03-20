@@ -11,7 +11,7 @@ import org.jdom2.Document;
 import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
 
-//import inspector.Inspector;
+import inspector.Inspector;
 
 public class Receiver {
 	
@@ -34,11 +34,13 @@ public class Receiver {
 			try {
 				initConnection();
 				Document doc = saxBuilder.build(inStream);
-				System.out.println("Received document!\n");
+				System.out.println("Received document! Deserializing ...");
 				
 				Object o = deserializer.deserialize(doc);
-				//Inspector.inspect(o, false);
+				System.out.println("Deserialization complete ... inspecting deserialized object:");
 				
+				Inspector.inspect(o, true, false);
+				System.out.println();
 			} catch (IOException e) {
 				System.out.println(e.getMessage());
 			} catch (JDOMException e) {

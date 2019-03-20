@@ -5,11 +5,8 @@ public class SimpleObject {
 	private int intField;	   				
 	private boolean boolField;  				
 	
-	/**
-	 * Simple Object Constructor
-	 * @param i
-	 * @param b
-	 */
+	public SimpleObject() {}
+	
 	public SimpleObject(int i, boolean b) {
 		intField = i;
 		boolField = b;

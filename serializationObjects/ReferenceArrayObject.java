@@ -4,10 +4,8 @@ public class ReferenceArrayObject {
 	
 	private Object[] refArray;
 	
-	/**
-	 * Reference Array Object Constructor
-	 * @param refs
-	 */
+	public ReferenceArrayObject() {}
+	
 	public ReferenceArrayObject(Object[] refs) {
 		refArray = refs;
 	}

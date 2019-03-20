@@ -81,7 +81,7 @@ public class Sender {
 				xmlOutputter.setFormat(Format.getRawFormat());
 				xmlOutputter.output(doc, outStream);
 				closeConnection();
-				System.out.println("Transmitted!");
+				System.out.println("Transmitted!\n");
 			} catch (IOException e) {
 				System.out.println(e.getMessage());
 			}
@@ -132,7 +132,7 @@ public class Sender {
 	public static void initConnection() {
 		try {
 			socket = new Socket(remoteAddress, port);
-			System.out.println("Connected to remote machine ...\n");
+			System.out.println("Connected to remote machine ...");
 			
 			inStream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			outStream = new PrintWriter(socket.getOutputStream(), true);

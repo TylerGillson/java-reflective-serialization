@@ -4,10 +4,8 @@ public class PrimitiveArrayObject {
 	
 	private int[] intArray;
 	
-	/**
-	 * Primitive Array Object Constructor
-	 * @param ints
-	 */
+	public PrimitiveArrayObject() {}
+	
 	public PrimitiveArrayObject(int[] ints) {
 		intArray = ints;
 	}

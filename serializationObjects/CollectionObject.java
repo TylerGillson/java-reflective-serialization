@@ -6,10 +6,8 @@ public class CollectionObject {
 	
 	private ArrayList<Object> refArrayList;
 	
-	/**
-	 * Collection Object Constructor
-	 * @param refList
-	 */
+	public CollectionObject() {}
+	
 	public CollectionObject(ArrayList<Object> refList) {
 		refArrayList = refList;
 	}

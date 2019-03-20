@@ -4,10 +4,8 @@ public class ReferenceObject {
 	
 	private Object objRef;
 	
-	/**
-	 * Reference Object Constructor
-	 * @param ref
-	 */
+	public ReferenceObject() {}
+	
 	public ReferenceObject(Object ref) {
 		objRef = ref;
 	}
