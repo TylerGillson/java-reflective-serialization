@@ -1,9 +1,7 @@
 package sender;
 
-import java.io.BufferedReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -21,14 +19,13 @@ public class Sender {
 	private static XMLOutputter xmlOutputter;
 	
 	private static Socket socket;
-	private static BufferedReader inStream;
 	private static PrintWriter outStream;
 	
 	private static boolean working = true;
 	private static int fileCount = 0;
 	private static Object currentObj;
 	
-	private static final String remoteAddress = "136.159.5.27";  //"127.0.0.1"
+	private static final String remoteAddress = "136.159.5.25";  //"127.0.0.1"
 	private static final int port = 5000;
 	private static final String fileRoot = "/Users/tylergillson/Desktop/XML/";
 	
@@ -129,14 +126,16 @@ public class Sender {
 		}
 	}
 	
+	/**********************
+	 * NETWORK CONNECTION *
+	 **********************/
+	
 	public static void initConnection() {
 		try {
 			socket = new Socket(remoteAddress, port);
 			System.out.println("Connected to remote machine ...");
 			
-			inStream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			outStream = new PrintWriter(socket.getOutputStream(), true);
-			
 		} catch (UnknownHostException e) {
 			System.out.println(e.getMessage());
 		} catch (IOException e) {
@@ -146,7 +145,6 @@ public class Sender {
 	
 	public static void closeConnection() {
 		try {
-			inStream.close();
 			outStream.close();
 			socket.close(); 
 		} catch(IOException e) {
