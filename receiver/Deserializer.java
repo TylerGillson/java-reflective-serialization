@@ -11,7 +11,6 @@ import org.jdom2.Element;
 
 import serializationObjects.*;
 
-@SuppressWarnings("unused")
 public class Deserializer {
 	
 	private HashMap<Integer, Element> objElementTable;
@@ -149,7 +148,7 @@ public class Deserializer {
 		try {
 			Constructor<?> c = classObj.getDeclaredConstructors()[0];
 			c.setAccessible(true);
-			return c.newInstance(new Object[] {});	
+			return c.newInstance();	
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
