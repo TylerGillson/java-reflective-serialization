@@ -2,8 +2,6 @@ package tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -54,201 +52,83 @@ public class TestDeserializer {
 	@Test
 	void testDeserializeSimpleObject() {
 		Document doc = serializer.serialize(simpleObj);
-		Object o = deserializer.deserialize(doc);
+		SimpleObject o = (SimpleObject)deserializer.deserialize(doc);
 		
-		Class<?> classObj = o.getClass();
-		assertEquals(classObj.getSimpleName(), "SimpleObject");
-		
-		Field[] fields = classObj.getDeclaredFields();
-		for (Field f : fields)
-			f.setAccessible(true);
-		
-		try {
-			assertEquals(fields[0].get(o), simpleObj.getIntField());
-			assertEquals(fields[1].get(o), simpleObj.getBoolField());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		assertEquals(o.getClass(), simpleObj.getClass());
+		assertEquals(o.getIntField(), simpleObj.getIntField());
+		assertEquals(o.getBoolField(), simpleObj.getBoolField());
 	}
 	
 	@Test
 	void testDeserializeReferenceObject() {
 		Document doc = serializer.serialize(refObj);
-		Object o = deserializer.deserialize(doc);
+		ReferenceObject o = (ReferenceObject)deserializer.deserialize(doc);
+		SimpleObject sObj = (SimpleObject)o.getObjRef();
 		
-		Class<?> classObj = o.getClass();
-		assertEquals(classObj.getSimpleName(), "ReferenceObject");
-		
-		Field[] fields = classObj.getDeclaredFields();
-		for (Field f : fields)
-			f.setAccessible(true);
-		
-		try {
-			Object sObj = fields[0].get(o);
-			Class<?> sClassObj = sObj.getClass();
-			assertEquals(sClassObj.getSimpleName(), "SimpleObject");
-			
-			Field[] sFields = sClassObj.getDeclaredFields();
-			for (Field f : sFields)
-				f.setAccessible(true);
-			
-			assertEquals(sFields[0].get(sObj), simpleObj.getIntField());
-			assertEquals(sFields[1].get(sObj), simpleObj.getBoolField());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		assertEquals(o.getClass(), refObj.getClass());
+		assertEquals(sObj.getClass(), simpleObj.getClass());
+		assertEquals(sObj.getIntField(), simpleObj.getIntField());
+		assertEquals(sObj.getBoolField(), simpleObj.getBoolField());
 	}
 	
 	@Test
 	void testDeserializePrimitiveArrayObject() {
 		Document doc = serializer.serialize(primitiveArrayObj);
-		Object o = deserializer.deserialize(doc);
+		PrimitiveArrayObject o = (PrimitiveArrayObject)deserializer.deserialize(doc);
+		int[] pInts = primitiveArrayObj.getIntArray();
+		int[] ints = o.getIntArray();
 		
-		Class<?> classObj = o.getClass();
-		assertEquals(classObj.getSimpleName(), "PrimitiveArrayObject");
-		
-		Field[] fields = classObj.getDeclaredFields();
-		for (Field f : fields)
-			f.setAccessible(true);
-		
-		try {
-			Object ints = fields[0].get(o);
-			assertEquals(Array.get(ints, 0), primitiveArrayObj.getIntArray()[0]);
-			assertEquals(Array.get(ints, 1), primitiveArrayObj.getIntArray()[1]);
-			assertEquals(Array.get(ints, 2), primitiveArrayObj.getIntArray()[2]);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		assertEquals(o.getClass(), primitiveArrayObj.getClass());
+		assertEquals(ints[0], pInts[0]);
+		assertEquals(ints[1], pInts[1]);
+		assertEquals(ints[2], pInts[2]);
 	}
 	
 	@Test
 	void testDeserializeReferenceArrayObject() {
 		Document doc = serializer.serialize(refArrayObj);
-		Object o = deserializer.deserialize(doc);
+		ReferenceArrayObject o = (ReferenceArrayObject)deserializer.deserialize(doc);
+		Object[] refs = o.getRefArray();
+		SimpleObject sObj = (SimpleObject)refs[0];
+		ReferenceObject rObj = (ReferenceObject)refs[1];
+		SimpleObject refSObj = (SimpleObject)rObj.getObjRef();
 		
-		Class<?> classObj = o.getClass();
-		assertEquals(classObj.getSimpleName(), "ReferenceArrayObject");
-		
-		Field[] fields = classObj.getDeclaredFields();
-		for (Field f : fields)
-			f.setAccessible(true);	
-		
-		try {
-			Object refs = fields[0].get(o);
-			Object sObj = Array.get(refs, 0);
-			Object rObj = Array.get(refs, 1);
-			
-			// SIMPLE OBJ
-			Class<?> sClassObj = sObj.getClass();
-			assertEquals(sClassObj.getSimpleName(), "SimpleObject");
-			
-			Field[] sFields = sClassObj.getDeclaredFields();
-			for (Field f : sFields)
-				f.setAccessible(true);
-			
-			assertEquals(sFields[0].get(sObj), simpleObj.getIntField());
-			assertEquals(sFields[1].get(sObj), simpleObj.getBoolField());
-			
-			// REFERENCE OBJ
-			Class<?> rClassObj = rObj.getClass();
-			assertEquals(rClassObj.getSimpleName(), "ReferenceObject");
-			
-			Field[] rFields = rClassObj.getDeclaredFields();
-			for (Field f : rFields)
-				f.setAccessible(true);
-			
-			Object sObj2 = rFields[0].get(rObj);
-			Class<?> sClassObj2 = sObj2.getClass();
-			assertEquals(sClassObj2.getSimpleName(), "SimpleObject");
-			
-			Field[] sFields2 = sClassObj2.getDeclaredFields();
-			for (Field f : sFields2)
-				f.setAccessible(true);
-			
-			assertEquals(sFields2[0].get(sObj2), simpleObj.getIntField());
-			assertEquals(sFields2[1].get(sObj2), simpleObj.getBoolField());
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		assertEquals(o.getClass(), refArrayObj.getClass());
+		assertEquals(sObj.getClass(), simpleObj.getClass());
+		assertEquals(sObj.getIntField(), simpleObj.getIntField());
+		assertEquals(sObj.getBoolField(), simpleObj.getBoolField());
+		assertEquals(rObj.getClass(), refObj.getClass());
+		assertEquals(refSObj.getClass(), simpleObj.getClass());
+		assertEquals(refSObj.getIntField(), simpleObj.getIntField());
+		assertEquals(refSObj.getBoolField(), simpleObj.getBoolField());
 	}
 	
 	@Test
 	void testDeserializeCollectionObject() {
 		Document doc = serializer.serialize(collectionObj);
-		Object o = deserializer.deserialize(doc);
+		CollectionObject o = (CollectionObject)deserializer.deserialize(doc);
+		ArrayList<Object> collectionArray = o.getRefArrayList();
+		PrimitiveArrayObject pObj = (PrimitiveArrayObject)collectionArray.get(0);
+		ReferenceArrayObject rObj = (ReferenceArrayObject)collectionArray.get(1);
+		int[] ints = pObj.getIntArray();
+		Object[] refs = rObj.getRefArray();
+		SimpleObject refSObj = (SimpleObject)refs[0];
+		ReferenceObject refRObj = (ReferenceObject)refs[1];
+		SimpleObject refRefSObj = (SimpleObject)refRObj.getObjRef();
 		
-		Class<?> classObj = o.getClass();
-		assertEquals(classObj.getSimpleName(), "CollectionObject");
+		assertEquals(o.getClass(), collectionObj.getClass());
+		assertEquals(pObj.getClass(), primitiveArrayObj.getClass());
+		assertEquals(rObj.getClass(), refArrayObj.getClass());
+		assertEquals(refSObj.getClass(), simpleObj.getClass());
+		assertEquals(refRObj.getClass(), refObj.getClass());
+		assertEquals(refRefSObj.getClass(), simpleObj.getClass());
 		
-		Field[] fields = classObj.getDeclaredFields();
-		for (Field f : fields)
-			f.setAccessible(true);	
-		
-		try {
-			Object oField = fields[0].get(o);
-			@SuppressWarnings("unchecked")
-			ArrayList<Object> arrList = ((ArrayList<Object>)oField);
-			Object pObj = arrList.get(0);
-			Object rArrayObj = arrList.get(1);
-			
-			// PRIMITIVE ARRAY OBJ
-			Class<?> pclassObj = pObj.getClass();
-			assertEquals(pclassObj.getSimpleName(), "PrimitiveArrayObject");
-			
-			Field[] pfields = pclassObj.getDeclaredFields();
-			for (Field f : pfields)
-				f.setAccessible(true);
-			
-			Object ints = pfields[0].get(pObj);
-			assertEquals(Array.get(ints, 0), primitiveArrayObj.getIntArray()[0]);
-			assertEquals(Array.get(ints, 1), primitiveArrayObj.getIntArray()[1]);
-			assertEquals(Array.get(ints, 2), primitiveArrayObj.getIntArray()[2]);
-			
-			// REFERENCE ARRAY OBJ
-			Class<?> rArrayClassObj = rArrayObj.getClass();
-			assertEquals(rArrayClassObj.getSimpleName(), "ReferenceArrayObject");
-			
-			Field[] rArrayFields = rArrayClassObj.getDeclaredFields();
-			for (Field f : rArrayFields)
-				f.setAccessible(true);	
-			
-			Object refs = rArrayFields[0].get(rArrayObj);
-			Object sObj = Array.get(refs, 0);
-			Object rObj = Array.get(refs, 1);
-			
-			// SIMPLE OBJ
-			Class<?> sClassObj = sObj.getClass();
-			assertEquals(sClassObj.getSimpleName(), "SimpleObject");
-			
-			Field[] sFields = sClassObj.getDeclaredFields();
-			for (Field f : sFields)
-				f.setAccessible(true);
-			
-			assertEquals(sFields[0].get(sObj), simpleObj.getIntField());
-			assertEquals(sFields[1].get(sObj), simpleObj.getBoolField());
-			
-			// REFERENCE OBJ
-			Class<?> rClassObj = rObj.getClass();
-			assertEquals(rClassObj.getSimpleName(), "ReferenceObject");
-			
-			Field[] rFields = rClassObj.getDeclaredFields();
-			for (Field f : rFields)
-				f.setAccessible(true);
-			
-			Object sObj2 = rFields[0].get(rObj);
-			Class<?> sClassObj2 = sObj2.getClass();
-			assertEquals(sClassObj2.getSimpleName(), "SimpleObject");
-			
-			Field[] sFields2 = sClassObj2.getDeclaredFields();
-			for (Field f : sFields2)
-				f.setAccessible(true);
-			
-			assertEquals(sFields2[0].get(sObj2), simpleObj.getIntField());
-			assertEquals(sFields2[1].get(sObj2), simpleObj.getBoolField());
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		assertEquals(ints[0], primitiveArrayObj.getIntArray()[0]);
+		assertEquals(ints[1], primitiveArrayObj.getIntArray()[1]);
+		assertEquals(ints[2], primitiveArrayObj.getIntArray()[2]);
+		assertEquals(refSObj.getIntField(), simpleObj.getIntField());
+		assertEquals(refSObj.getBoolField(), simpleObj.getBoolField());
+		assertEquals(refRefSObj.getIntField(), simpleObj.getIntField());
+		assertEquals(refRefSObj.getBoolField(), simpleObj.getBoolField());
 	}
 }
