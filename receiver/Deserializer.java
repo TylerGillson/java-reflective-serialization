@@ -11,6 +11,13 @@ import org.jdom2.Element;
 
 import serializationObjects.*;
 
+/**
+ * The Deserializer class reconstructs arbitrary objects from
+ * org.jdom2.Document instances which contain their serialized
+ * field and field value information.
+ * 
+ * @author tylergillson
+ */
 public class Deserializer {
 	
 	private HashMap<Integer, Element> objElementTable;
@@ -19,8 +26,16 @@ public class Deserializer {
 		objElementTable = new HashMap<Integer, Element>();
 	}
 	
-	public Object deserialize(Document document) {
-		Element root = document.getRootElement();
+	/**
+	 * Given an org.jdom2.Document instance, extract and re-create
+	 * each object which it contains, correctly associating reconstructed
+	 * objects in the process.
+	 *  
+	 * @param doc - The Document undergoing deserialization
+	 * @return A reconstructed Object instance
+	 */
+	public Object deserialize(Document doc) {
+		Element root = doc.getRootElement();
 		List<Element> objects = root.getChildren();
 		Element primaryObj = objects.remove(0);
 		
@@ -34,6 +49,12 @@ public class Deserializer {
 		return obj;
 	}
 	
+	/**
+	 * Given an object's XML element, determine if it an array or not and deserialize it accordingly.
+	 * 
+	 * @param objElement - An object's primary XML element
+	 * @return A reconstructed Object instance
+	 */
 	private Object rebuildObject(Element objElement) {
 		Object obj = null;
 		
@@ -51,6 +72,19 @@ public class Deserializer {
 		return obj;
 	}
 	
+	/**
+	 * Given an array's primary XML element, an instance of its declaring class, its length,
+	 * and its id, fully reconstruct the array object it encodes. Iterate over each
+	 * <reference> and <value> Element contained by the array's primary XML element, recursively
+	 * deserializing objects referenced by <reference> elements, and instantiating wrapper
+	 * instances for primitive values indicated by <value> elements.
+	 * 
+	 * @param objElement - An array's primary XML element
+	 * @param classObj - An instance of an array's declaring class
+	 * @param length - The length of the array
+	 * @param id - The array's id
+	 * @return A newly created array containing deserialized objects and/or primitive values
+	 */
 	private Object parseArrayElement(Element objElement, Class<?> classObj, int length, int id) {
 		Class<?> componentType = classObj.getComponentType();
 		Object o = Array.newInstance(componentType, length);
@@ -74,12 +108,23 @@ public class Deserializer {
 						break;
 				}
 			}
-			
 			Array.set(o, i++, arrElem);
 		}
 		return o;
 	}
 	
+	/**
+	 * Given an object's primary XML element, an instance of its declaring class,
+	 * and its id number, fully reconstruct that object by traversing each <reference>
+	 * and <value> Element contained with the primary XML element. Recursively deserialize
+	 * each object referenced by <reference> elements, and create wrapper instances for
+	 * primitive values contained within <value> elements.
+	 * 
+	 * @param objElement - An object's primary XML element
+	 * @param classObj - An instance of an object's declaring class
+	 * @param id - The object's id
+	 * @return A newly created object instance
+	 */
 	private Object parseObjectElement(Element objElement, Class<?> classObj, int id) {
 		Object o = extractAndInvokeDefaultConstructor(classObj);
 		
@@ -133,6 +178,20 @@ public class Deserializer {
 		return o;
 	}
 	
+	/**********************************
+	 * DESERIALIZATOIN HELPER METHODS *
+	 **********************************/
+	
+	/**
+	 * Given an object's primary XML Element, an attribute name, and a flag indicating
+	 * whether or not the object is an array, create and return a new instance of the
+	 * object's declaring class.
+	 * 
+	 * @param objElement - An object's primary XML element
+	 * @param attrName - A String indicating which attribute to extract (always either "class" or "declaringclass")
+	 * @param isArray - A boolean indicating whether or not the object is an array
+	 * @return A newly created instance of the object's declaring class
+	 */
 	public Class<?> extractClassObject(Element objElement, String attrName, boolean isArray) {
 		String className = objElement.getAttribute(attrName).getValue();
 		try {
@@ -144,6 +203,13 @@ public class Deserializer {
 		return null;
 	}
 	
+	/**
+	 * Given an instance of an object's declaring class, acquire its no-arg
+	 * constructor and use it to create and return a new instance of the specified class.
+	 * 
+	 * @param classObj - An instance of an object's declaring class
+	 * @return A newly created object instance, instantiated via its no-arg constructor
+	 */
 	public Object extractAndInvokeDefaultConstructor(Class<?> classObj) {
 		try {
 			Constructor<?> c = classObj.getDeclaredConstructors()[0];
@@ -155,6 +221,14 @@ public class Deserializer {
 		return null;
 	}
 	
+	/**
+	 * Given an instance of an object's declaring class and a field name,
+	 * acquire a Field instance representing that object's specified field.
+	 * 
+	 * @param classObj - An instance of an object's declaring class
+	 * @param fieldName - The name of the field to reconstruct
+	 * @return A newly created java.lang.reflect.Field instance 
+	 */
 	public Field extractAndEnableField(Class<?> classObj, String fieldName) {
 		try {
 			Field f = classObj.getDeclaredField(fieldName);
@@ -166,6 +240,12 @@ public class Deserializer {
 		return null;
 	}
 	
+	/**
+	 * Given an object's primary XML element, extract and return its id number.
+	 * 
+	 * @param objElement - An object's primary XML element
+	 * @return Its integer id
+	 */
 	public int extractId(Element objElement) {
 		return Integer.parseInt(objElement.getAttribute("id").getValue());
 	}

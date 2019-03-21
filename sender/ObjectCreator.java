@@ -11,6 +11,12 @@ import serializationObjects.ReferenceArrayObject;
 import serializationObjects.ReferenceObject;
 import serializationObjects.SimpleObject;
 
+/**
+ * The ObjectCreator class enables a user to create objects
+ * from a selection of 5 object types.
+ * 
+ * @author tylergillson
+ */
 public class ObjectCreator {
 	
 	private Scanner sc;
@@ -31,12 +37,13 @@ public class ObjectCreator {
 		return objHashMap.get(id);
 	}
 	
-	/**********************************
+	/***************************
 	 * Object Creation Methods *
-	 **********************************/
+	 ***************************/
 	
 	/**
 	 * Create a new SimpleObject instance.
+	 * 
 	 * @param endLine - Whether or not to print a line break after object creation
 	 * @return simpleObj - A newly created SimpleObject
 	 */
@@ -62,6 +69,7 @@ public class ObjectCreator {
 	
 	/**
 	 * Create a new ReferenceObject instance.
+	 * 
 	 * @param endLine - Whether or not to print a line break after object creation
 	 * @return refObj - A newly created ReferenceObject
 	 */
@@ -110,6 +118,7 @@ public class ObjectCreator {
 	
 	/**
 	 * Create a new PrimitiveArrayObject instance.
+	 * 
 	 * @param endLine - Whether or not to print a line break after object creation
 	 * @return primitiveArrayObj - A newly created PrimitiveArrayObject
 	 */
@@ -134,6 +143,7 @@ public class ObjectCreator {
 	
 	/**
 	 * Create a new ReferenceArrayObject instance.
+	 * 
 	 * @param endLine - Whether or not to print a line break after object creation
 	 * @return referenceArrayObj - A newly created ReferenceArrayObject
 	 */
@@ -162,6 +172,7 @@ public class ObjectCreator {
 	
 	/**
 	 * Create a new CollectionObject instance.
+	 * 
 	 * @param endLine - Whether or not to print a line break after object creation
 	 * @return collectionObj - A newly created CollectionObject
 	 */
@@ -194,6 +205,7 @@ public class ObjectCreator {
 	
 	/**
 	 * Print a menu of object creation options for the user.
+	 * 
 	 * @param preLine - boolean indicating whether or not to print a line break before printing the menu
 	 */
 	public void printMenu(boolean preLine) {
@@ -212,6 +224,7 @@ public class ObjectCreator {
 	
 	/**
 	 * Acquire an integer from the user via standard input.
+	 * 
 	 * @param useMin - Whether or not to enforce a minimum acceptable value
 	 * @param min - The minimum acceptable value
 	 * @return The integer entered by the user
@@ -236,7 +249,8 @@ public class ObjectCreator {
 	}
 	
 	/**
-	 * Acquire an integer selection from the user via standard input.
+	 * Acquire an integer selection that lies within a specified range from the user via standard input.
+	 * 
 	 * @param prompt - String message to introduce the selection
 	 * @param errorMsg - String message to print when an invalid input is provided
 	 * @param min - Integer indicating minimum acceptable input value (inclusive)
@@ -280,7 +294,8 @@ public class ObjectCreator {
 	}
 	
 	/**
-	 * Create one of six possible object types.
+	 * Create one of five possible object types.
+	 * 
 	 * @param selection - Integer indicating which type of object to create
 	 * @param endLines - Whether or not to print a line break after object creation
 	 * @return o - A newly created Object

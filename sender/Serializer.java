@@ -10,6 +10,11 @@ import org.jdom2.Attribute;
 import org.jdom2.Document;
 import org.jdom2.Element;
 
+/**
+ * The Serializer class serializes objects created by an ObjectCreator.
+ * 
+ * @author tylergillson
+ */
 public class Serializer {
 	
 	private static IdentityHashMap<Object, Integer> serializationMap;
@@ -22,6 +27,17 @@ public class Serializer {
 		id = 0;
 	}
 	
+	/*************************
+	 * SERIALIZATION METHODS *
+	 *************************/
+	
+	/**
+	 * Given an arbitrary object from the serializationObjects package,
+	 * serialize it into an org.jdom2.Document object.
+	 * 
+	 * @param obj - The object to serialize
+	 * @return An org.jdom2.Document instance
+	 */
 	public Document serialize(Object obj) {
 		Element root = new Element("serialized");
 		Document doc = new Document(root);
@@ -30,6 +46,13 @@ public class Serializer {
 		return doc;	
 	}
 	
+	/**
+	 * Given a Document with a single root Element, add all necessary object elements
+	 * for the object being serialized, as well as any and all objects which it references.
+	 * 
+	 * @param root - The root Element of the empty Document
+	 * @param obj - The object undergoing serialization
+	 */
 	private void toXML(Element root, Object obj) {
 		if (serializationMap.containsKey(obj)) {
 			traverseSerializationMap(root, obj);
@@ -51,6 +74,14 @@ public class Serializer {
 		}
 	}
 
+	/**
+	 * Create the XML document's primary element.
+	 * 
+	 * @param obj - The object undergoing serialization
+	 * @param c - An instance of obj's declaring class
+	 * @return An org.jdom2.Element instance for the object containing attributes
+	 * 		   for its class, id, and length (if obj is an array)
+	 */
 	private ObjectElement initObjectElement(Object obj, Class<?> c) {
 		Element objElement = new Element("object");
 		objElement.setAttribute(new Attribute("class", c.getSimpleName()));
@@ -65,6 +96,14 @@ public class Serializer {
 		return new ObjectElement(objElement);
 	}
 	
+	/**
+	 * Recursively serialize an array instance which was encountered within
+	 * another object undergoing serialization.
+	 * 
+	 * @param root - The root Element of the XML document currently being created
+	 * @param element - The <reference> Element of the document indicating the id of the array which must be serialized 
+	 * @param array - The array object which will be recursively serialized
+	 */
 	private void addArray(Element root, Element element, Object array) {
 		Element entry = new Element("reference");
 		
@@ -80,6 +119,14 @@ public class Serializer {
 		}
 	}
 	
+	/**
+	 * Recursively serialize an object instance which was encountered within
+	 * another object undergoing serialization.
+	 * 
+	 * @param root - The root Element of the XML document currently being created
+	 * @param childElement - The <reference> Element of the document indicating the id of the array which must be serialized
+	 * @param o - The object which will be recursively serialized
+	 */
 	private void addObject(Element root, Element childElement, Object o) {
 		if (serializationMap.containsKey(o)) {
 			int key = serializationMap.get(o);
@@ -92,6 +139,15 @@ public class Serializer {
 		}
 	}
 	
+	/**
+	 * Iterate over each element of an array instance, serializing each element.
+	 * 
+	 * @param root - The root Element of the XML document currently being created
+	 * @param objElement - The object Element indicating the object currently undergoing serialization
+	 * @param length - The length of the array
+	 * @param obj - The array object
+	 * @param objClass - An instance of obj's declaring class
+	 */
 	private void serializeArray(Element root, Element objElement, int length, Object obj, Class<?> objClass) {
 		for (int i = 0; i < length; i++) {
 			Object element = Array.get(obj, i);
@@ -105,6 +161,17 @@ public class Serializer {
 		}
 	}
 	
+	/**
+	 * Serialize an arbitrary object which is not an array by iterating over each of its
+	 * fields, acquiring their value(s) and either adding <value> elements for primitive fields
+	 * or adding <reference> elements for fields which contain objects. If a field contains an object,
+	 * recursively serialize that object.
+	 * 
+	 * @param root - The root Element of the XML document currently being created
+	 * @param objElement - The object Element indicating the object currently undergoing serialization
+	 * @param obj - The object instance
+	 * @param objClass - An instance of obj's declaring class
+	 */
 	private void serializeNonArray(Element root, Element objElement, Object obj, Class<?> objClass) {
 		Field[] fields = objClass.getDeclaredFields();
 		
@@ -145,6 +212,17 @@ public class Serializer {
 		}
 	}
 	
+	/**
+	 * Given an object create and return a new XML Element.
+	 * If the object is primitive, create a <value> Element containing the object's value.
+	 * If the object is not primitive, recursively serialize it and create a <reference> 
+	 * Element containing the id of the object element created by the recursive serialization.
+	 *  
+	 * @param root - The root Element of the XML document currently being created
+	 * @param o - The object under inspection
+	 * @param c - An instance of o's declaring class
+	 * @return A new Element which either contains o's value, or a reference to o's recursively generated object element.
+	 */
 	private Element serializePrimitiveOrObject(Element root, Object o, Class<?> c) {
 		Element entry = new Element("null");
 		
@@ -159,6 +237,12 @@ public class Serializer {
 		return entry;
 	}
 	
+	/**
+	 * Internal data class used to create XML object Elements
+	 * for either generic Objects, or arrays.
+	 * 
+	 * @author tylergillson
+	 */
 	private static class ObjectElement {
 		Element elem;
 		int length;
@@ -176,6 +260,7 @@ public class Serializer {
 	/**
 	 * Check if a class instance is a primitive or a primitive wrapper.
 	 * Source: https://stackoverflow.com/questions/209366/how-can-i-generically-tell-if-a-java-class-is-a-primitive-type
+	 * 
 	 * @param c - A Class instance
 	 * @return Whether c is primitive type itself or if it's a wrapper for a primitive type
 	 */
@@ -199,6 +284,14 @@ public class Serializer {
 	 * Serialization Map Traversal *
 	 *******************************/
 	
+	/**
+	 * Given an object, traverse each of its fields and their values, adding
+	 * all necessary XML elements to the root Element which was provided.
+	 * This prevents unnecessary re-serialization.
+	 * 
+	 * @param root - The root Element to append pre-serialized Elements to
+	 * @param obj - The object whose fields will be traversed
+	 */
 	private void traverseSerializationMap(Element root, Object obj) {
 		int key = serializationMap.get(obj);
 		addReference(root, key);
@@ -223,6 +316,16 @@ public class Serializer {
 		}
 	}
 	
+	/**
+	 * Given an XML <reference> Element, extract its id, use that id to add
+	 * the object element of the previously serialized object it references
+	 * to the XML Document currently being created. Next, iterate over the 
+	 * serialization map to recursively add any other object elements which
+	 * are referenced by the object being referenced.
+	 *  
+	 * @param root - The root Element of the XML document currently being created
+	 * @param e - A <reference> Element
+	 */
 	private void addReference(Element root, Element e) {
 		int key = Integer.parseInt(e.getText());
 		addReference(root, key);
@@ -234,6 +337,13 @@ public class Serializer {
 		}
 	}
 	
+	/**
+	 * Given a key into the XML table, acquire the corresponding Element
+	 * and append it to the provided root Element of the Document being created.
+	 * 
+	 * @param root - The root Element of the XML document currently being created
+	 * @param key - An integer key into the XML table
+	 */
 	private void addReference(Element root, int key) {
 		Element xml = xmlTable.get(key);
 		xml.detach();

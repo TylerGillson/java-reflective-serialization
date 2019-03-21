@@ -11,8 +11,17 @@ import org.jdom2.Document;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 
+/**
+ * The Sender class encapsulates an ObjectCreator, a Serializer,
+ * and a network connection with a remote machine. It enables a 
+ * user to create objects, serialize them, and either transmit 
+ * them over a network to the remote machine or print them
+ * to local XML files.
+ * 
+ * @author tylergillson
+ */
 public class Sender {
-	
+
 	private static Scanner sc;
 	private static ObjectCreator objCreator;
 	private static Serializer serializer;
@@ -32,6 +41,7 @@ public class Sender {
 	/**
 	 * Create an arbitrary number of objects. Objects may be selected from 5 predefined options.
 	 * Created objects may be serialized, then either transmitted over a network or written to a file.
+	 * 
 	 * @param args
 	 */
 	public static void main(String[] args) {
@@ -67,7 +77,6 @@ public class Sender {
 	/**
 	 * Serialize an arbitrary object, then transmit it over a network
 	 * socket for deserialization on a remote machine.
-	 * @param obj - An object instance
 	 */
 	public static void serializeThenTransmitObject() {
 		Document doc = serializeObject("transmit");
@@ -85,6 +94,9 @@ public class Sender {
 		}
 	}
 	
+	/**
+	 * Serialize an arbitrary object, then write it to a local XML file.
+	 */
 	public static void serializeThenWriteObjectToFile() {
 		Document doc = serializeObject("write to a file");
 		
@@ -101,7 +113,14 @@ public class Sender {
 			}	
 		}
 	}
-
+	
+	/**
+	 * Prompt the user to select an object from the Object Creator for serialization.
+	 * Then have the Serializer serialize and return the selected object.
+	 * 
+	 * @param msg - A message explaining what will be done after serialization
+	 * @return The selected object serialized into an org.jdom2.Document object
+	 */
 	public static Document serializeObject(String msg) {
 		if (objCreator.getObjCounter() == 0) {
 			System.out.println("\nNo objects have been created yet.\n");
@@ -126,10 +145,15 @@ public class Sender {
 		}
 	}
 	
-	/**********************
-	 * NETWORK CONNECTION *
-	 **********************/
+	/*********************************
+	 * NETWORK CONNECTION MANAGEMENT *
+	 *********************************/
 	
+	/**
+	 * Initialize a network connection with a remote machine
+	 * whose IP address & port number are specified by the global variables:
+	 * remoteAddress and port, respectively.
+	 */
 	public static void initConnection() {
 		try {
 			socket = new Socket(remoteAddress, port);
@@ -143,6 +167,9 @@ public class Sender {
 		}
 	}
 	
+	/**
+	 * Close an existing network connection.
+	 */
 	public static void closeConnection() {
 		try {
 			outStream.close();
